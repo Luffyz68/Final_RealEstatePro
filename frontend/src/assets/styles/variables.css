@@ -1,0 +1,44 @@
+:root {
+  --primary: #0a0f1d;
+  --primary-light: #161e31;
+  --secondary: #eab308;
+  --secondary-hover: #ca8a04;
+  --accent: #fbbf24;
+  --accent-light: #fef3c7;
+  --background: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #dc2626;
+
+  /* Status Colors */
+  --status-pending-bg: #fef3c7;
+  --status-pending-text: #92400e;
+  --status-approved-bg: #dcfce7;
+  --status-approved-text: #166534;
+  --status-completed-bg: #dbeafe;
+  --status-completed-text: #1e40af;
+  --status-rejected-bg: #fee2e2;
+  --status-rejected-text: #991b1b;
+  --status-cancelled-bg: #f1f5f9;
+  --status-cancelled-text: #475569;
+
+  /* Spacing & Borders */
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 6px 16px -2px rgba(15, 23, 42, 0.1), 0 2px 6px -1px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 14px 34px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+

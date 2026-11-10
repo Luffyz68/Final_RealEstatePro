@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RealEstate Pro - Find Your Dream Property</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Boot loader: visible instantly before Vue mounts, then replaced by the app -->
+      <style>
+        #boot-loader {
+          position: fixed;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 1.25rem;
+          background: #f8fafc;
+          z-index: 9999;
+        }
+        #boot-loader .boot-icon {
+          width: 58px;
+          height: 58px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.6rem;
+          box-shadow: 0 10px 24px -6px rgba(37, 99, 235, 0.45);
+          animation: bootPulse 1.4s ease-in-out infinite;
+        }
+        #boot-loader .boot-brand {
+          font-family: 'Outfit', sans-serif;
+          font-size: 1.35rem;
+          font-weight: 800;
+          letter-spacing: -0.025em;
+          color: #0f172a;
+        }
+        #boot-loader .boot-brand span { color: #2563eb; }
+        #boot-loader .boot-bar {
+          width: 140px;
+          height: 4px;
+          border-radius: 9999px;
+          background: #e2e8f0;
+          overflow: hidden;
+        }
+        #boot-loader .boot-bar::after {
+          content: '';
+          display: block;
+          height: 100%;
+          width: 45%;
+          border-radius: 9999px;
+          background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+          animation: bootSlide 1.1s ease-in-out infinite;
+        }
+        @keyframes bootPulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.06); }
+        }
+        @keyframes bootSlide {
+          0% { transform: translateX(-110%); }
+          100% { transform: translateX(320%); }
+        }
+      </style>
+      <div id="boot-loader" role="status" aria-label="Loading RealEstatePro">
+        <div class="boot-icon"><i class="fa-solid fa-building"></i></div>
+        <div class="boot-brand">RealEstate<span>Pro</span></div>
+        <div class="boot-bar"></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

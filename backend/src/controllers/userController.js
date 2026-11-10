@@ -32,7 +32,7 @@ const getUsers = async (req, res, next) => {
     const total = countResult ? countResult.total : 0;
 
     const sql = `
-      SELECT id, full_name, email, phone, role, profile_image, status, created_at, updated_at 
+      SELECT id, full_name, email, phone, bio, role, profile_image, status, created_at, updated_at 
       FROM users ${whereClause} 
       ORDER BY id DESC 
       LIMIT ? OFFSET ?
@@ -55,7 +55,7 @@ const getUsers = async (req, res, next) => {
 const getUserById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const user = await get('SELECT id, full_name, email, phone, role, profile_image, status, created_at, updated_at FROM users WHERE id = ?', [id]);
+    const user = await get('SELECT id, full_name, email, phone, bio, role, profile_image, status, created_at, updated_at FROM users WHERE id = ?', [id]);
     if (!user) {
       return sendError(res, 'User not found', 404);
     }
@@ -67,7 +67,7 @@ const getUserById = async (req, res, next) => {
 
 const createUser = async (req, res, next) => {
   try {
-    const { full_name, email, password, phone, role = 'customer', status = 'active' } = req.body;
+    const { full_name, email, password, phone, bio, role = 'customer', status = 'active' } = req.body;
 
     const safeName = normalizeText(full_name, 'Full name', { required: true, max: 100 });
     const safeEmail = normalizeEmail(email);
@@ -81,12 +81,13 @@ const createUser = async (req, res, next) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const safeBio = bio !== undefined ? normalizeText(bio, 'Bio', { max: 500 }) : null;
     const result = await run(
-      `INSERT INTO users (full_name, email, password, phone, role, status) VALUES (?, ?, ?, ?, ?, ?)`,
-      [safeName, safeEmail, hashedPassword, normalizeText(phone, 'Phone', { max: 30 }), safeRole, safeStatus]
+      `INSERT INTO users (full_name, email, password, phone, bio, role, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [safeName, safeEmail, hashedPassword, normalizeText(phone, 'Phone', { max: 30 }), safeBio, safeRole, safeStatus]
     );
 
-    const newUser = await get('SELECT id, full_name, email, phone, role, profile_image, status, created_at FROM users WHERE id = ?', [result.id]);
+    const newUser = await get('SELECT id, full_name, email, phone, bio, role, profile_image, status, created_at FROM users WHERE id = ?', [result.id]);
     return sendSuccess(res, 'User created successfully', newUser, 201);
   } catch (error) {
     next(error);
@@ -96,7 +97,7 @@ const createUser = async (req, res, next) => {
 const updateUser = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { full_name, email, phone, role, status, password } = req.body;
+    const { full_name, email, phone, bio, profile_image, role, status, password } = req.body;
 
     const user = await get('SELECT * FROM users WHERE id = ?', [id]);
     if (!user) {
@@ -121,7 +122,15 @@ const updateUser = async (req, res, next) => {
     }
     if (phone !== undefined) {
       updateFields.push('phone = ?');
-      params.push(phone);
+      params.push(phone ? normalizeText(phone, 'Phone', { max: 30 }) : null);
+    }
+    if (bio !== undefined) {
+      updateFields.push('bio = ?');
+      params.push(bio ? normalizeText(bio, 'Bio', { max: 500 }) : null);
+    }
+    if (profile_image !== undefined) {
+      updateFields.push('profile_image = ?');
+      params.push(profile_image ? normalizeText(profile_image, 'Profile image', { max: 10000000 }) : null);
     }
     if (role) {
       const nextRole = requireEnum(role, ['admin', 'agent', 'customer'], 'Role');
@@ -160,7 +169,7 @@ const updateUser = async (req, res, next) => {
 
     await run(`UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`, params);
 
-    const updatedUser = await get('SELECT id, full_name, email, phone, role, profile_image, status, created_at, updated_at FROM users WHERE id = ?', [id]);
+    const updatedUser = await get('SELECT id, full_name, email, phone, bio, role, profile_image, status, created_at, updated_at FROM users WHERE id = ?', [id]);
     return sendSuccess(res, 'User updated successfully', updatedUser);
   } catch (error) {
     next(error);

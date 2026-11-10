@@ -51,7 +51,7 @@
                 >
                   Approve
                 </button>
-                <button v-if="['rejected','completed','cancelled'].includes(app.status)" class="btn-icon text-danger" title="Delete appointment" @click="removeAppointment(app.id)"><i class="fa-solid fa-trash"></i></button>
+                <button v-if="authStore.isAdmin && ['rejected','completed','cancelled'].includes(app.status)" class="btn-icon text-danger" title="Delete appointment" @click="removeAppointment(app.id)"><i class="fa-solid fa-trash"></i></button>
                 <button 
                   v-if="app.status === 'pending'" 
                   class="btn btn-sm btn-danger" 
@@ -79,12 +79,14 @@
 import { ref, onMounted, computed } from 'vue';
 import appointmentService from '@/services/appointmentService';
 import { useUiStore } from '@/stores/uiStore';
+import { useAuthStore } from '@/stores/authStore';
 
 const appointments = ref([]);
 const loading = ref(true);
 const search = ref('');
 const statusFilter = ref('');
 const ui = useUiStore();
+const authStore = useAuthStore();
 const filteredAppointments = computed(() => appointments.value.filter((item) => {
   const term = search.value.toLowerCase();
   return (!statusFilter.value || item.status === statusFilter.value) && (!term || [item.customer_name, item.property_title, item.agent_name].some((value) => String(value || '').toLowerCase().includes(term)));

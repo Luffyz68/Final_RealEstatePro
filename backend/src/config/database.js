@@ -3,16 +3,30 @@ require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 const { Pool } = require('pg');
 
 const createDatabase = (config = {}) => {
-  const pool = new Pool({
-    host: config.host || process.env.DB_HOST || 'localhost',
-    port: parseInt(config.port || process.env.DB_PORT || '5432', 10),
-    user: config.user || process.env.DB_USER || 'postgres',
-    password: config.password || process.env.DB_PASSWORD || '',
-    database: config.database || process.env.DB_NAME || 'real_estate_db',
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
-  });
+  const isProduction = process.env.NODE_ENV === 'production';
+  const connectionString = process.env.DATABASE_URL || config.connectionString;
+
+  const poolConfig = connectionString
+    ? {
+        connectionString,
+        ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
+      }
+    : {
+        host: config.host || process.env.DB_HOST || 'localhost',
+        port: parseInt(config.port || process.env.DB_PORT || '5432', 10),
+        user: config.user || process.env.DB_USER || 'postgres',
+        password: config.password || process.env.DB_PASSWORD || '',
+        database: config.database || process.env.DB_NAME || 'real_estate_db',
+        ssl: (process.env.DB_SSL === 'true' || isProduction) ? { rejectUnauthorized: false } : false,
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 5000,
+      };
+
+  const pool = new Pool(poolConfig);
 
   pool.on('connect', () => {
     if (process.env.NODE_ENV !== 'test') {

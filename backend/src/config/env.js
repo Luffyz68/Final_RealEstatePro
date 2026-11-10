@@ -20,6 +20,7 @@ const getConfig = () => {
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
     corsOrigins,
     db: {
+      connectionString: process.env.DATABASE_URL || '',
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT || '5432', 10),
       user: process.env.DB_USER || 'postgres',

@@ -38,14 +38,16 @@
             <td>{{ l.commune || 'N/A' }}</td>
             <td>{{ l.address || 'N/A' }}</td>
             <td>
-              <button class="btn-icon text-secondary" title="Edit Location" @click="openEdit(l)"><i class="fa-solid fa-pen"></i></button>
-              <small v-if="l.latitude && l.longitude">{{ l.latitude.toFixed(4) }}, {{ l.longitude.toFixed(4) }}</small>
+              <small v-if="l.latitude && l.longitude">{{ Number(l.latitude).toFixed(4) }}, {{ Number(l.longitude).toFixed(4) }}</small>
               <small v-else class="text-muted">None</small>
             </td>
             <td>
-              <button class="btn-icon text-danger" title="Delete Location" @click="confirmDelete(l.id)">
-                <i class="fa-solid fa-trash"></i>
-              </button>
+              <div class="action-buttons">
+                <button class="btn-icon text-secondary" title="Edit Location" @click="openEdit(l)"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn-icon text-danger" title="Delete Location" @click="confirmDelete(l.id)">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>

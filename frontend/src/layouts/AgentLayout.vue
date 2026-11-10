@@ -169,7 +169,7 @@
           </button>
 
           <!-- User -->
-          <div class="user-badge">
+          <router-link to="/agent/profile" class="user-badge" style="text-decoration: none;" title="Edit Agent Profile">
             <img
               :src="authStore.user?.profile_image || defaultAvatar"
               class="avatar"
@@ -182,8 +182,8 @@
               <span>Agent</span>
             </div>
 
-            <i class="fa-solid fa-chevron-down user-arrow"></i>
-          </div>
+            <i class="fa-solid fa-chevron-right user-arrow"></i>
+          </router-link>
         </div>
       </header>
 

@@ -4,7 +4,7 @@
       <header class="welcome-card">
         <div>
           <span class="eyebrow">MY PROPERTY HUB</span>
-          <h1>Welcome back, {{ auth.user?.full_name?.split(' ')[0] }}</h1>
+          <h1>Welcome back, {{ auth.user?.full_name?.split(' ')[0] || 'there' }}</h1>
           <p>Track saved homes, conversations, viewings, and property services in one place.</p>
         </div>
         <router-link to="/properties" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Explore properties</router-link>

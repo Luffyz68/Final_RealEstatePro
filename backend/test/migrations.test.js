@@ -45,7 +45,7 @@ test('migrations are idempotent and preserve existing data', async (t) => {
 
   await runMigrations(db);
 
-
+  const testEmail = `preserved_${Date.now()}@example.com`;
 
   const userResult = await db.run(
     `
@@ -60,19 +60,19 @@ test('migrations are idempotent and preserve existing data', async (t) => {
     `,
     [
       'Preserved User',
-      'preserved@example.com',
+      testEmail,
       'hashed-password',
       'customer',
       'active'
     ]
   );
 
+  const originalUserId = userResult.id || userResult.lastID;
+
   assert.ok(
-    userResult.lastID,
+    originalUserId,
     'Expected inserted user to receive an ID'
   );
-
-  const originalUserId = userResult.lastID;
 
 
 
@@ -107,7 +107,7 @@ test('migrations are idempotent and preserve existing data', async (t) => {
       FROM users
       WHERE email = ?
     `,
-    ['preserved@example.com']
+    [testEmail]
   );
 
   assert.ok(
@@ -128,7 +128,7 @@ test('migrations are idempotent and preserve existing data', async (t) => {
 
   assert.equal(
     user.email,
-    'preserved@example.com'
+    testEmail
   );
 
   assert.equal(
@@ -149,7 +149,11 @@ test('migrations are idempotent and preserve existing data', async (t) => {
 
 
   const propertyColumns = await db.query(
-    'PRAGMA table_info(properties)'
+    `
+      SELECT column_name AS name
+      FROM information_schema.columns
+      WHERE table_name = 'properties'
+    `
   );
 
   const propertyColumnNames = propertyColumns.map(
@@ -273,24 +277,25 @@ test('migrations do not delete existing user rows', async (t) => {
 
   await runMigrations(db);
 
+  const runId = Date.now();
   const users = [
     [
       'User One',
-      'user1@example.com',
+      `user1_${runId}@example.com`,
       'hash-1',
       'customer',
       'active'
     ],
     [
       'User Two',
-      'user2@example.com',
+      `user2_${runId}@example.com`,
       'hash-2',
       'customer',
       'active'
     ],
     [
       'Agent User',
-      'agent@example.com',
+      `agent_${runId}@example.com`,
       'hash-3',
       'agent',
       'active'
@@ -330,8 +335,8 @@ test('migrations do not delete existing user rows', async (t) => {
   );
 
   assert.equal(
-    after.total,
-    before.total,
+    Number(after.total),
+    Number(before.total),
     'Migration must not delete existing users'
   );
 });
@@ -357,9 +362,9 @@ test('migrations create required application tables', async (t) => {
 
   const tables = await db.query(
     `
-      SELECT name
-      FROM sqlite_master
-      WHERE type = 'table'
+      SELECT table_name AS name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
     `
   );
 

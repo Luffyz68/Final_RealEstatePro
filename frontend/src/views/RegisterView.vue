@@ -57,9 +57,9 @@
                 :type="showPassword ? 'text' : 'password'" 
                 v-model="password" 
                 minlength="8"
-                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}"
-                title="At least 8 characters with uppercase, lowercase, and a number"
-                placeholder="Enter your password" 
+                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                title="At least 8 characters with uppercase, lowercase, a number, and a special character"
+                placeholder="Enter your password (e.g. Pass123!)" 
                 autocomplete="new-password"
                 required 
               />
@@ -135,6 +135,16 @@ const handleRegister = async () => {
 
   if (password.value !== confirmPassword.value) {
     errorMessage.value = 'Passwords do not match.';
+    return;
+  }
+
+  if (password.value.length < 8) {
+    errorMessage.value = 'Password must be at least 8 characters.';
+    return;
+  }
+
+  if (!/[A-Z]/.test(password.value) || !/[a-z]/.test(password.value) || !/\d/.test(password.value) || !/[^A-Za-z0-9]/.test(password.value)) {
+    errorMessage.value = 'Password must include uppercase, lowercase, a number, and a special character (e.g. !@#$%^&*).';
     return;
   }
 

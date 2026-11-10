@@ -49,7 +49,7 @@
               </div>
             </td>
             <td>{{ p.property_type_name }}</td>
-            <td><strong>${{ Number(p.price).toLocaleString() }}</strong></td>
+            <td><strong>${{ isNaN(Number(p.price)) ? '0' : Number(p.price).toLocaleString() }}</strong></td>
             <td><span class="badge" :class="p.listing_type === 'sale' ? 'badge-sale' : 'badge-rent'">For {{ p.listing_type }}</span></td>
             <td>{{ p.agent_name }}</td>
             <td><span class="status-chip" :class="'chip-' + p.status.toLowerCase()">{{ p.status }}</span></td>
@@ -191,19 +191,28 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import propertyService from '@/services/propertyService';
 import propertyTypeService from '@/services/propertyTypeService';
 import locationService from '@/services/locationService';
 import { useUiStore } from '@/stores/uiStore';
 
+const route = useRoute();
 const properties = ref([]);
 const propertyTypes = ref([]);
 const locations = ref([]);
 const loading = ref(true);
 const ui = useUiStore();
-const search = ref('');
+const search = ref(route.query.search || '');
 const listingFilter = ref('');
-const statusFilter = ref('');
+const statusFilter = ref(route.query.status || '');
+
+watch(() => route.query.search, (val) => {
+  if (val !== undefined) search.value = val;
+});
+watch(() => route.query.status, (val) => {
+  if (val !== undefined) statusFilter.value = val;
+});
 const statuses = ['available', 'pending', 'sold', 'rented', 'hidden'];
 const editingId = ref(null);
 const mainImageMode = ref('url');

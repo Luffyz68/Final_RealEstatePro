@@ -117,7 +117,10 @@
                 <td><span :class="'badge badge-' + (p.listing_type || 'sale')">For {{ p.listing_type }}</span></td>
                 <td><strong>${{ isNaN(Number(p.price)) ? '0' : Number(p.price).toLocaleString() }}</strong></td>
                 <td>
-                  <button class="btn btn-sm btn-primary" @click="approveProperty(p.id, 'approved')">Approve</button>
+                  <div style="display: flex; gap: 0.4rem;">
+                    <button class="btn btn-sm btn-primary" @click="approveProperty(p.id, 'approved')">Approve</button>
+                    <button class="btn btn-sm btn-danger" @click="approveProperty(p.id, 'rejected')">Reject</button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -138,10 +141,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="stats.recentAgentRequests?.length === 0">
+              <tr v-if="!stats.recentAgentRequests || stats.recentAgentRequests.length === 0">
                 <td colspan="3" class="text-center text-muted py-4">No pending requests.</td>
               </tr>
-              <tr v-for="req in stats.recentAgentRequests" :key="req.id">
+              <tr v-for="req in (stats.recentAgentRequests || [])" :key="req.id">
                 <td><strong>{{ req.full_name }}</strong></td>
                 <td><small>{{ req.email }}</small></td>
                 <td>
@@ -154,6 +157,37 @@
             </tbody>
           </table>
         </div>
+      </div>
+
+      <!-- Recent Customer Inquiries -->
+      <div v-if="recentInquiries.length > 0" class="table-card" style="margin-top: 1.5rem;">
+        <div class="card-header flex-between">
+          <h3>Recent Customer Inquiries</h3>
+          <router-link to="/admin/inquiries" class="text-link" style="font-size: 0.85rem; font-weight: 600;">View All Inquiries →</router-link>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Property</th>
+              <th>Message</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="inq in recentInquiries" :key="inq.id">
+              <td>
+                <strong>{{ inq.name }}</strong><br />
+                <small class="text-muted">{{ inq.email }}</small>
+              </td>
+              <td><strong>{{ inq.property_title }}</strong></td>
+              <td><div style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">"{{ inq.message }}"</div></td>
+              <td>{{ new Date(inq.created_at).toLocaleDateString() }}</td>
+              <td><span class="badge" :class="'badge-' + (inq.status || 'pending')">{{ inq.status }}</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

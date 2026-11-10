@@ -107,18 +107,23 @@
 
         <!-- Property Grid -->
         <div v-else-if="properties.length > 0" class="properties-grid">
-          <div v-for="prop in properties" :key="prop.id" class="property-card">
+          <div v-for="prop in properties" :key="prop.id" class="property-card" @click="goToDetail(prop.id)">
             <div class="card-image-wrapper">
               <img :src="prop.main_image || placeholderImage" :alt="prop.title" />
               <span class="badge" :class="prop.listing_type === 'sale' ? 'badge-sale' : 'badge-rent'">
                 For {{ prop.listing_type === 'sale' ? 'Sale' : 'Rent' }}
               </span>
-              <button class="fav-btn" title="Add to favorites">
-                <i class="fa-regular fa-heart"></i>
+              <button 
+                class="fav-btn" 
+                :class="{ favorited: favoriteStore.isFavorite(prop.id) }" 
+                :title="favoriteStore.isFavorite(prop.id) ? 'Remove from favorites' : 'Add to favorites'"
+                @click.stop="toggleFav(prop.id)"
+              >
+                <i :class="favoriteStore.isFavorite(prop.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
               </button>
             </div>
             <div class="card-body">
-              <div class="price-tag">${{ Number(prop.price).toLocaleString() }}<span v-if="prop.listing_type === 'rent'">/mo</span></div>
+              <div class="price-tag">${{ isNaN(Number(prop.price)) ? '0' : Number(prop.price).toLocaleString() }}<span v-if="prop.listing_type === 'rent'">/mo</span></div>
               <h3 class="card-title">{{ prop.title }}</h3>
               <p class="card-location"><i class="fa-solid fa-location-dot"></i> {{ prop.city }}, {{ prop.province }}</p>
               
@@ -185,8 +190,12 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
 import propertyTypeService from '@/services/propertyTypeService';
+import { useFavoriteStore } from '@/stores/favoriteStore';
+import { useAuthStore } from '@/stores/authStore';
 
 const router = useRouter();
+const favoriteStore = useFavoriteStore();
+const authStore = useAuthStore();
 const searchType = ref('');
 const searchKeyword = ref('');
 const selectedType = ref('');
@@ -242,7 +251,22 @@ const navigateToCategory = (catName) => {
   router.push({ path: '/properties', query: { property_type: catName } });
 };
 
+const goToDetail = (id) => {
+  router.push(`/properties/${id}`);
+};
+
+const toggleFav = async (propertyId) => {
+  if (!authStore.isAuthenticated) {
+    router.push('/login');
+    return;
+  }
+  await favoriteStore.toggleFavorite(propertyId);
+};
+
 onMounted(() => {
+  if (authStore.isAuthenticated) {
+    favoriteStore.fetchFavorites();
+  }
   fetchFeaturedProperties();
   fetchCategories();
 });
@@ -448,6 +472,12 @@ onMounted(() => {
   overflow: hidden;
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
+  cursor: pointer;
+}
+
+.fav-btn.favorited {
+  color: #ef4444 !important;
+  background: #ffffff;
 }
 
 .property-card:hover {

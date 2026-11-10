@@ -61,7 +61,7 @@
             <td>
               <div class="action-buttons">
                 <button class="btn-icon text-primary" title="Reply to inquiry" @click="openReplyModal(inq)"><i class="fa-regular fa-comments"></i></button>
-                <button class="btn-icon text-danger" title="Delete inquiry" @click="removeInquiry(inq.id)"><i class="fa-solid fa-trash"></i></button>
+                <button v-if="authStore.isAdmin" class="btn-icon text-danger" title="Delete inquiry" @click="removeInquiry(inq.id)"><i class="fa-solid fa-trash"></i></button>
               </div>
             </td>
           </tr>
@@ -100,12 +100,14 @@
 import { ref, onMounted, computed } from 'vue';
 import inquiryService from '@/services/inquiryService';
 import { useUiStore } from '@/stores/uiStore';
+import { useAuthStore } from '@/stores/authStore';
 
 const inquiries = ref([]);
 const loading = ref(true);
 const search = ref('');
 const statusFilter = ref('');
 const ui = useUiStore();
+const authStore = useAuthStore();
 
 const replyingTo = ref(null);
 const replyMessage = ref('');

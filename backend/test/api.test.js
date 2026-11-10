@@ -168,16 +168,22 @@ test.before(async () => {
 
   await runMigrations(database);
 
+  // Clean previous customer test runner user so registration test is reproducible
+  await database.run("DELETE FROM appointments WHERE user_id IN (SELECT id FROM users WHERE email = 'customer@example.com')");
+  await database.run("DELETE FROM inquiries WHERE user_id IN (SELECT id FROM users WHERE email = 'customer@example.com')");
+  await database.run("DELETE FROM service_requests WHERE user_id IN (SELECT id FROM users WHERE email = 'customer@example.com')");
+  await database.run("DELETE FROM favorites WHERE user_id IN (SELECT id FROM users WHERE email = 'customer@example.com')");
+  await database.run("DELETE FROM users WHERE email = 'customer@example.com'");
+
   const hashedPassword =
     await bcrypt.hash(
       'Admin123!',
       4
     );
 
- 
-
-  const admin =
-    await database.run(
+  let admin = await database.get('SELECT id FROM users WHERE email = ?', ['admin@example.com']);
+  if (!admin) {
+    admin = await database.run(
       `
         INSERT INTO users (
           full_name,
@@ -194,13 +200,13 @@ test.before(async () => {
         hashedPassword
       ]
     );
+  } else {
+    await database.run('UPDATE users SET password = ?, role = ?, status = ? WHERE id = ?', [hashedPassword, 'admin', 'active', admin.id]);
+  }
 
-  getInsertedId(admin);
-
-
-
-  const agent =
-    await database.run(
+  let agent = await database.get('SELECT id FROM users WHERE email = ?', ['agent@example.com']);
+  if (!agent) {
+    agent = await database.run(
       `
         INSERT INTO users (
           full_name,
@@ -217,14 +223,15 @@ test.before(async () => {
         hashedPassword
       ]
     );
+    agentId = getInsertedId(agent);
+  } else {
+    await database.run('UPDATE users SET password = ?, role = ?, status = ? WHERE id = ?', [hashedPassword, 'agent', 'active', agent.id]);
+    agentId = agent.id;
+  }
 
-  agentId =
-    getInsertedId(agent);
-
-
-
-  const type =
-    await database.run(
+  let type = await database.get('SELECT id FROM property_types WHERE name = ?', ['Villa']);
+  if (!type) {
+    type = await database.run(
       `
         INSERT INTO property_types (
           name
@@ -233,14 +240,14 @@ test.before(async () => {
       `,
       ['Villa']
     );
+    propertyTypeId = getInsertedId(type);
+  } else {
+    propertyTypeId = type.id;
+  }
 
-  propertyTypeId =
-    getInsertedId(type);
-
-
-
-  const location =
-    await database.run(
+  let location = await database.get('SELECT id FROM locations WHERE province = ? AND city = ?', ['Phnom Penh', 'Phnom Penh']);
+  if (!location) {
+    location = await database.run(
       `
         INSERT INTO locations (
           province,
@@ -253,9 +260,10 @@ test.before(async () => {
         'Phnom Penh'
       ]
     );
-
-  locationId =
-    getInsertedId(location);
+    locationId = getInsertedId(location);
+  } else {
+    locationId = location.id;
+  }
 
 
 
@@ -268,6 +276,7 @@ test.before(async () => {
           property_type_id,
           listing_type,
           status,
+          approval_status,
           area,
           location_id,
           agent_id
@@ -278,6 +287,7 @@ test.before(async () => {
           ?,
           'sale',
           'available',
+          'approved',
           ?,
           ?,
           ?
@@ -309,6 +319,7 @@ test.before(async () => {
           property_type_id,
           listing_type,
           status,
+          approval_status,
           area,
           location_id,
           agent_id
@@ -319,6 +330,7 @@ test.before(async () => {
           ?,
           'sale',
           'hidden',
+          'approved',
           ?,
           ?,
           ?

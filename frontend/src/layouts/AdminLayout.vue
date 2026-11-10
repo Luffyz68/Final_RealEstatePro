@@ -307,12 +307,15 @@
             <i class="fa-solid fa-magnifying-glass"></i>
 
             <input
+              ref="searchInput"
               type="text"
-              placeholder="Search anything..."
+              v-model="searchQuery"
+              placeholder="Search properties, users..."
               aria-label="Search"
+              @keydown.enter="handleSearch"
             />
 
-            <span class="search-shortcut">⌘ K</span>
+            <span class="search-shortcut" @click="searchInput?.focus()">⌘ K</span>
           </div>
 
           <!-- Quick Add -->
@@ -325,14 +328,52 @@
           </router-link>
 
           <!-- Notification -->
-          <button
-            class="icon-button"
-            type="button"
-            aria-label="Notifications"
-          >
-            <i class="fa-regular fa-bell"></i>
-            <span class="notification-indicator"></span>
-          </button>
+          <div class="notification-container" style="position: relative;">
+            <button
+              class="icon-button"
+              type="button"
+              aria-label="Notifications"
+              :aria-expanded="notificationsOpen"
+              @click="notificationsOpen = !notificationsOpen"
+            >
+              <i class="fa-regular fa-bell"></i>
+              <span class="notification-indicator"></span>
+            </button>
+
+            <div v-if="notificationsOpen" class="notifications-dropdown" @click="notificationsOpen = false">
+              <div class="notifications-header">
+                <strong>Admin Quick Shortcuts</strong>
+              </div>
+              <router-link to="/admin/properties?status=pending" class="notification-item">
+                <i class="fa-solid fa-building text-primary"></i>
+                <div>
+                  <strong>Pending Properties</strong>
+                  <small>Review new property submissions</small>
+                </div>
+              </router-link>
+              <router-link to="/admin/inquiries" class="notification-item">
+                <i class="fa-regular fa-comment-dots text-secondary"></i>
+                <div>
+                  <strong>Inquiries</strong>
+                  <small>Check customer messages</small>
+                </div>
+              </router-link>
+              <router-link to="/admin/appointments" class="notification-item">
+                <i class="fa-regular fa-calendar-check text-success"></i>
+                <div>
+                  <strong>Appointments</strong>
+                  <small>Review tour bookings</small>
+                </div>
+              </router-link>
+              <router-link to="/admin/service-requests" class="notification-item">
+                <i class="fa-solid fa-wrench text-warning"></i>
+                <div>
+                  <strong>Service Requests</strong>
+                  <small>Customer maintenance requests</small>
+                </div>
+              </router-link>
+            </div>
+          </div>
 
           <!-- User -->
           <router-link
@@ -369,7 +410,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -378,6 +419,30 @@ const route = useRoute();
 const authStore = useAuthStore();
 
 const sidebarOpen = ref(false);
+const notificationsOpen = ref(false);
+const searchInput = ref(null);
+const searchQuery = ref('');
+
+const handleSearch = () => {
+  if (searchQuery.value.trim()) {
+    router.push({ path: '/admin/properties', query: { search: searchQuery.value.trim() } });
+  }
+};
+
+const handleKeydown = (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    searchInput.value?.focus();
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown);
+});
 
 const defaultAvatar =
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
@@ -1265,6 +1330,61 @@ const handleLogout = async () => {
   border-radius: 50%;
 
   background: #f04438;
+}
+
+.notifications-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 280px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  z-index: 1000;
+  animation: dropdownIn 0.2s ease;
+}
+
+.notifications-header {
+  padding: 0.85rem 1rem;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.825rem;
+  color: var(--primary);
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  color: var(--text);
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s ease;
+}
+
+.notification-item:hover {
+  background: #f8fafc;
+}
+
+.notification-item i {
+  font-size: 1.1rem;
+  width: 24px;
+  text-align: center;
+}
+
+.notification-item strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--primary);
+}
+
+.notification-item small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 /* =========================================================

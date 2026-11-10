@@ -29,6 +29,11 @@
           </tr>
         </thead>
         <tbody>
+          <tr v-if="!properties.length">
+            <td colspan="7" class="table-empty text-center py-4 text-muted" style="text-align: center; padding: 2rem;">
+              No property listings found. Click "Add New Property" to create one.
+            </td>
+          </tr>
           <tr v-for="p in properties" :key="p.id">
             <td>
               <div class="prop-flex">
@@ -40,7 +45,7 @@
               </div>
             </td>
             <td>{{ p.property_type_name }}</td>
-            <td><strong>${{ Number(p.price).toLocaleString() }}</strong></td>
+            <td><strong>${{ isNaN(Number(p.price)) ? '0' : Number(p.price).toLocaleString() }}</strong></td>
             <td><span class="badge" :class="p.listing_type === 'sale' ? 'badge-sale' : 'badge-rent'">For {{ p.listing_type }}</span></td>
             <td><span class="status-chip" :class="'chip-' + p.status.toLowerCase()">{{ p.status }}</span></td>
             <td>
@@ -50,9 +55,12 @@
             </td>
             <td>
               <div class="action-buttons">
-                <router-link :to="'/properties/' + p.id" class="btn-icon text-secondary" title="View">
+                <router-link :to="'/properties/' + p.id" class="btn-icon text-secondary" title="View Property">
                   <i class="fa-solid fa-eye"></i>
                 </router-link>
+                <button class="btn-icon text-secondary" title="Edit Property" @click="openEditModal(p)">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
                 <button class="btn-icon text-danger" title="Delete Property" @click="confirmDelete(p.id)">
                   <i class="fa-solid fa-trash"></i>
                 </button>
@@ -67,11 +75,11 @@
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
       <div class="modal-card">
         <div class="modal-header flex-between">
-          <h3>Add New Property</h3>
+          <h3>{{ editingId ? 'Edit Property' : 'Add New Property' }}</h3>
           <button class="close-btn" @click="showModal = false">&times;</button>
         </div>
 
-        <form @submit.prevent="handleCreateProperty" class="modal-form">
+        <form @submit.prevent="handleSaveProperty" class="modal-form">
           <div class="form-group">
             <label>Property Title</label>
             <input type="text" v-model="form.title" placeholder="e.g. Modern Condo Suite" required />
@@ -166,7 +174,7 @@
 
           <button type="submit" class="btn btn-primary btn-block" :disabled="saving">
             <span v-if="saving"><i class="fa-solid fa-circle-notch fa-spin"></i> Submitting...</span>
-            <span v-else>Create Property Listing</span>
+            <span v-else>{{ editingId ? 'Save Changes' : 'Create Property Listing' }}</span>
           </button>
         </form>
       </div>
@@ -191,6 +199,7 @@ const loading = ref(true);
 const mainImageMode = ref('url');
 const showModal = ref(false);
 const saving = ref(false);
+const editingId = ref(null);
 
 const handleMainImageFileUpload = (e) => {
   const file = e.target.files[0];
@@ -222,7 +231,7 @@ const fetchData = async () => {
   loading.value = true;
   try {
     const [pRes, ptRes, lRes] = await Promise.all([
-      propertyService.getProperties({ agent_id: authStore.user.id, limit: 50 }),
+      propertyService.getProperties({ agent_id: authStore.user?.id, limit: 50 }),
       propertyTypeService.getPropertyTypes(),
       locationService.getLocations()
     ]);
@@ -237,22 +246,47 @@ const fetchData = async () => {
 };
 
 const openCreateModal = () => {
+  editingId.value = null;
   form.title = '';
   form.price = '';
   form.main_image = '';
   form.description = '';
+  form.property_type_id = propertyTypes.value[0]?.id || 1;
+  form.location_id = locations.value[0]?.id || 1;
   showModal.value = true;
 };
 
-const handleCreateProperty = async () => {
+const openEditModal = (p) => {
+  editingId.value = p.id;
+  Object.assign(form, {
+    title: p.title,
+    price: p.price,
+    listing_type: p.listing_type,
+    property_type_id: p.property_type_id,
+    location_id: p.location_id,
+    bedrooms: p.bedrooms,
+    bathrooms: p.bathrooms,
+    area: p.area,
+    main_image: p.main_image || '',
+    description: p.description || ''
+  });
+  showModal.value = true;
+};
+
+const handleSaveProperty = async () => {
   saving.value = true;
   try {
-    await propertyService.createProperty(form);
+    if (editingId.value) {
+      await propertyService.updateProperty(editingId.value, form);
+      ui.notify('Property listing updated successfully.');
+    } else {
+      await propertyService.createProperty(form);
+      ui.notify('Property listing created successfully.');
+    }
     showModal.value = false;
     await fetchData();
-    ui.notify('Property listing created successfully.');
   } catch (err) {
-    ui.notify(err.response?.data?.message || 'Failed to create property.', 'error');
+    ui.notify(err.response?.data?.message || 'Failed to save property.', 'error');
   } finally {
     saving.value = false;
   }
